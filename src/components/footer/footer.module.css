@@ -1,0 +1,103 @@
+.footer {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  /* background-color: rgba(0, 0, 0, 0.5); */
+  backdrop-filter: blur(6px);
+  padding: 20px;
+  color: white;
+  z-index: 10;
+}
+
+.links {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  max-width: 100%;
+  margin: 0 auto;
+}
+
+.contactUsTitle {
+  color: white;
+  margin-bottom: 10px;
+  font-size: 14px;
+}
+
+.socialLinks {
+  display: flex;
+  gap: 15px;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.socialLinks a {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background-color: rgba(255, 255, 255, 0.2);
+  transition: background-color 0.3s ease;
+}
+
+.socialLinks a:hover {
+  background-color: rgba(255, 255, 255, 0.3);
+}
+
+.icon {
+  width: 18px;
+  height: 18px;
+  fill: white;
+}
+
+.company {
+  color: white;
+  font-size: 14px;
+}
+
+.orderLink {
+  text-decoration: none;
+  color: white;
+  padding: 15px 26px;
+  border: 1px solid white;
+  /* border-radius: 4px; */
+  transition: all 0.3s ease;
+  font-size: 20px;
+}
+
+.orderLink:hover {
+  background-color: white;
+  color: black;
+}
+
+@media (max-width: 768px) {
+  .links {
+    flex-direction: column;
+    gap: 15px;
+    align-items: flex-start;
+  }
+  
+  .contactUs {
+    width: 100%;
+  }
+  
+  .socialLinks {
+    justify-content: space-between;
+    width: 100%;
+  }
+  
+  .company {
+    order: 3;
+    width: 100;
+    text-align: center;
+  }
+  
+  .orderLink {
+    order: 2;
+    width: 100%;
+    text-align: center;
+  }
+}

@@ -1,11 +1,12 @@
 import React, { FC, useRef, useState, useEffect, useCallback, useMemo } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
-import { OrbitControls } from '@react-three/drei';
+import { OrbitControls, Line, Box } from '@react-three/drei';
 import * as THREE from 'three';
 import Object from '../../components/object';
+import SceneRings from '../../components/sceneLines';
 
 interface SceneProps {
-    objectsList: {data: FC, title: string, model: string}[];
+    objectsList: {data: FC, title: string, model: string, scales: {x: number, y: number, z: number}, positions: {x: number, y: number, z: number}}[];
     onFocusChange: (focused: boolean) => void;
     setHandleBack: (handleBack: () => void) => void;
     setSelectedObject: React.Dispatch<React.SetStateAction<number | null>>;
@@ -20,22 +21,26 @@ const Scene: FC<SceneProps> = ({ objectsList, onFocusChange, setHandleBack, setS
     const [targetPosition, setTargetPosition] = useState<THREE.Vector3 | null>(null);
     const [targetLookAt, setTargetLookAt] = useState<THREE.Vector3>(new THREE.Vector3(0, 0, 0));
     const [animationProgress, setAnimationProgress] = useState(0);
-    const animationDuration = 3; // 3 секунды анимации
+    const [linesProgress, setLinesProgress] = useState<number[]>([]);
+    const animationDuration = 3;
 
-    // Начальная и конечная позиции камеры для анимации
-    const startCameraPosition = new THREE.Vector3(0, 15, 0); // Высоко над сценой
-    const startLookAt = new THREE.Vector3(0, 20, 0); // Смотрим вверх
-    const endCameraPosition = new THREE.Vector3(8, 7, 10); // Финишная позиция
-    const endLookAt = new THREE.Vector3(0, 0, 0); // Смотрим на центр сцены
+    const startCameraPosition = new THREE.Vector3(0, 15, 0);
+    const startLookAt = new THREE.Vector3(0, 20, 0);
+    const endCameraPosition = new THREE.Vector3(8, 7, 10);
+    const endLookAt = new THREE.Vector3(0, 0, 0);
 
-    // Инициализация камеры
+    useEffect(() => {
+        setLinesProgress(new Array(objectsList.length).fill(0));
+    }, [objectsList.length]);
+
     useEffect(() => {
         camera.position.copy(startCameraPosition);
         camera.lookAt(startLookAt);
-        controlsRef.current.enabled = false; // Отключаем управление во время анимации
+        if (controlsRef.current) {
+            controlsRef.current.enabled = false;
+        }
     }, [camera]);
 
-    // Создание объектов по кругу
     const objects = useMemo(() => {
         return Array.from({ length: objectsList.length }, (_, index) => {
             const angle = (index / objectsList.length) * Math.PI * 2;
@@ -46,14 +51,50 @@ const Scene: FC<SceneProps> = ({ objectsList, onFocusChange, setHandleBack, setS
                 position: [x, 0, z] as [number, number, number], 
                 index, 
                 title: objectsList[index].title, 
-                model: objectsList[index].model 
+                model: objectsList[index].model,
+                scales: objectsList[index].scales,
+                positions: objectsList[index].positions
             };
         });
     }, [objectsList]);
 
-    // Фокусировка на объекте
+    useFrame((state, delta) => {
+        if (animationProgress >= 0.5 && linesProgress.some(p => p < 1)) {
+            const newLinesProgress = linesProgress.map((progress, idx) => {
+                const delay = idx * 0.1;
+                if (animationProgress >= 0.5 + delay) {
+                    return Math.min(1, progress + delta * 1.5);
+                }
+                return progress;
+            });
+            setLinesProgress(newLinesProgress);
+        }
+    });
+
+    // // Функция для создания точек линий с разной длиной
+    // const getLinePoints = (
+    //     objPosition: [number, number, number],
+    //     progress: number,
+    //     lineIndex: number
+    // ): [number, number, number][] => {
+    //     const lengthMultipliers = [0.8, 0.9, 1.0, 0.9, 0.8];
+    //     const spread = 0.15;
+
+    //     const offsetX = (lineIndex - 2) * spread;
+    //     const offsetZ = (lineIndex - 2) * spread;
+
+    //     const startPoint: [number, number, number] = [offsetX, 0, offsetZ];
+
+    //     const endPoint: [number, number, number] = [
+    //         objPosition[0] * lengthMultipliers[lineIndex] * progress + offsetX,
+    //         objPosition[1] * lengthMultipliers[lineIndex] * progress,
+    //         objPosition[2] * lengthMultipliers[lineIndex] * progress + offsetZ
+    //     ];
+
+    //     return [startPoint, endPoint];
+    // };
+
     const handleFocus = (position: [number, number, number], index: number) => {
-        // Не позволяем фокусироваться во время стартовой анимации
         if (animationProgress < 1) return;
 
         setFocused(true);
@@ -69,11 +110,10 @@ const Scene: FC<SceneProps> = ({ objectsList, onFocusChange, setHandleBack, setS
         setTargetLookAt(new THREE.Vector3(
             position[0] - 1,
             position[1] + 0.5,
-            position[2]
+            position[2] - 2
         ));
     };
 
-    // Возврат к общему виду
     const handleBack = useCallback(() => {
         if (animationProgress < 1) return;
 
@@ -91,14 +131,11 @@ const Scene: FC<SceneProps> = ({ objectsList, onFocusChange, setHandleBack, setS
         }
     }, [onFocusChange, setSelectedObject, animationProgress]);
 
-    // Передаем handleBack в родительский компонент
     useEffect(() => {
         setHandleBack(handleBack);
     }, [handleBack, setHandleBack]);
 
-    // Анимация камеры
     useFrame((state, delta) => {
-        // Стартовая анимация
         if (animationProgress < 1) {
             const newProgress = Math.min(animationProgress + (delta / animationDuration), 1);
             setAnimationProgress(newProgress);
@@ -107,17 +144,14 @@ const Scene: FC<SceneProps> = ({ objectsList, onFocusChange, setHandleBack, setS
                 onAnimationProgress(newProgress);
             }
 
-            // Плавная интерполяция с ease-out эффектом
             const easedProgress = 1 - Math.pow(1 - newProgress, 3);
 
-            // Интерполяция позиции
             camera.position.lerpVectors(
                 startCameraPosition,
                 endCameraPosition,
                 easedProgress
             );
 
-            // Интерполяция точки взгляда
             const currentLookAt = new THREE.Vector3().lerpVectors(
                 startLookAt,
                 endLookAt,
@@ -125,7 +159,6 @@ const Scene: FC<SceneProps> = ({ objectsList, onFocusChange, setHandleBack, setS
             );
             camera.lookAt(currentLookAt);
 
-            // Включаем контролы по завершении анимации
             if (newProgress >= 1 && controlsRef.current) {
                 controlsRef.current.enabled = true;
                 controlsRef.current.update();
@@ -134,24 +167,19 @@ const Scene: FC<SceneProps> = ({ objectsList, onFocusChange, setHandleBack, setS
             return;
         }
 
-        // Обычная логика после стартовой анимации
         if (focused && targetPosition) {
-            // Плавное перемещение камеры к цели в режиме фокуса
             camera.position.lerp(targetPosition, 0.1);
             camera.lookAt(targetLookAt);
             camera.updateProjectionMatrix();
             
-            // Отключаем OrbitControls при фокусе
             if (controlsRef.current) {
                 controlsRef.current.enabled = false;
             }
         } else if (!focused && targetPosition) {
-            // Возвращение камеры в исходное положение
             camera.position.lerp(targetPosition, 0.1);
             camera.lookAt(targetLookAt);
             camera.updateProjectionMatrix();
             
-            // Проверяем завершение анимации возврата
             if (camera.position.distanceTo(targetPosition) < 0.1) {
                 setTargetPosition(null);
                 if (controlsRef.current) {
@@ -174,22 +202,54 @@ const Scene: FC<SceneProps> = ({ objectsList, onFocusChange, setHandleBack, setS
             />
             <pointLight position={[-10, 10, -10]} intensity={0.5} />
             
+            {/* Центральный процессор
+            <group position={[0, -0.5, 0]}>
+                <Box
+                    args={[1.5, 0.3, 1.5]}
+                    position={[0, 0, 0]}
+                    rotation={[0, Math.PI / 4, 0]}
+                >
+                    <meshStandardMaterial
+                        color="#fffff"
+                        metalness={0.5}
+                        roughness={0.2}
+                        emissive="#0066ff"
+                        emissiveIntensity={0.3}
+                    />
+                </Box> */}
+            {/* </group> */}
+
+            <group position={[0, -0.5, 0]}>
+            <SceneRings 
+                position={{x: 0, y: 0.3, z: 0}} 
+                scale={{x: 0.5, y: 0.5, z: 0.5}} // Подберите подходящий масштаб
+            />
+            </group>
+                        
+            {/* Объекты */}
             {objects.map((obj) => (
-                <Object
-                    key={obj.index}
+                obj.title != "NONE"
+                ? <Object
+                    key={`object-${obj.index}`}
                     position={obj.position}
                     index={obj.index}
                     title={obj.title}
                     isSelected={selectedCube === obj.index}
                     onFocus={(position) => handleFocus(position, obj.index)}
-                    showLabel={animationProgress >= 1} // Показываем метки только после анимации
+                    showLabel={animationProgress >= 1}
                     model={obj.model}
+                    scales={obj.scales}
+                    positions={obj.positions}
+                    focused={focused}
                 />
+                : <></>
             ))}
             
             <OrbitControls
                 ref={controlsRef}
                 enablePan={false}
+                enableZoom={false}
+                // enableRotate={false}
                 minDistance={5}
                 maxDistance={20}
                 target={[0, 0, 0]}

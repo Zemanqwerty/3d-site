@@ -1,8 +1,72 @@
-.title {
-   margin-top: 0;
-   color: #333;
+.root {
+  max-height: 80vh;
+  overflow-y: auto;
+  padding-right: 10px;
+  scrollbar-width: thin;
+  scrollbar-color: #007acc #f0f0f0;
+  margin-top: -20px;
 }
-  
-.text {
-  color: #666;
+
+.root::-webkit-scrollbar {
+  width: 6px;
+}
+.root::-webkit-scrollbar-track {
+  background: #f0f0f0;
+}
+.root::-webkit-scrollbar-thumb {
+  background: #007acc;
+  border-radius: 3px;
+}
+
+h1 {
+  font-size: 2rem;
+  color: #1a1a1a;
+  margin-bottom: 5px;
+}
+
+h2 {
+  font-size: 1.5rem;
+  color: #1a1a1a;
+  margin-top: 30px;
+  margin-bottom: 10px;
+  border-left: 4px solid #007acc;
+  padding-left: 10px;
+}
+
+h3 {
+  font-size: 1.2rem;
+  color: #333;
+  margin-top: 15px;
+  margin-bottom: 5px;
+}
+
+p {
+  color: #444;
+  line-height: 1.5;
+  margin-bottom: 15px;
+}
+
+ul {
+  list-style: none;
+  padding-left: 0;
+  margin-bottom: 15px;
+}
+
+ul li {
+  position: relative;
+  padding-left: 20px;
+  margin-bottom: 8px;
+  color: #555;
+}
+
+ul li::before {
+  content: "—";
+  position: absolute;
+  left: 0;
+  color: #007acc;
+}
+
+li h3 {
+  color: #007acc;
+  margin-bottom: 5px;
 }

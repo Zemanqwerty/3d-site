@@ -1,0 +1,17 @@
+.header {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  /* background-color: rgba(0, 0, 0, 0.5); */
+  /* backdrop-filter: blur(6px); */
+  padding: 20px;
+  color: white;
+  z-index: 10;
+}
+
+.logo {
+    font-size: 70px;
+    color: white;
+    font-weight: 700;
+}

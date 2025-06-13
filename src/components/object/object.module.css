@@ -1,13 +1,13 @@
 .label {
-    /* background: rgba(0, 0, 0, 0.7); */
-    color: white;
-    padding: 5px 10px;
-    margin-bottom: 110px;
-    border-radius: 5px;
-    font-size: 22px;
-    pointer-events: none;
-    font-family: 'Exo';
-    width: 300px;
-    text-align: center;
-    z-index: -1;
-  }
+  color: white;
+  padding: 5px 10px;
+  border-radius: 5px;
+  font-size: 22px;
+  font-family: 'Exo';
+  width: 300px;
+  text-align: center;
+  /* background: rgba(0, 0, 0, 0.7); */
+  /* backdrop-filter: blur(2px); */
+  transform: translateY(-50%);
+  pointer-events: none;
+}
